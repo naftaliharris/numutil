@@ -32,6 +32,9 @@ for denomstr, denom in _str2denom.items():
 _num2str = dict((y, x) for x, y in _str2num.iteritems())
 _denom2str = dict((y, x) for x, y in _str2denom.iteritems())
 
+# Strings that aren't numbers
+_special_nonnum_strs = set(['and', 'a'])
+
 def parsenum(numstr):
     """parsenum takes a string representation of a number, and returns 
     the number. If it doesn't find a number, it will raise a ValueError.
@@ -40,6 +43,10 @@ def parsenum(numstr):
     >>> from numutil import parsenum
     >>> parsenum('4.5 million')
     4500000
+    >>> parsenum('two and a third')
+    Fraction(7, 3)
+    >>> parsenum('123,456,789')
+    123456789
 
     """
 
@@ -59,44 +66,54 @@ def parsenum(numstr):
 
     # Try to parse numstr as a word-mix
     numstr = numstr.lower()
+    if numstr in _special_nonnum_strs:
+        raise ValueError("Could not parse '%s' into a number" % numstr)
     words = [''.join(word.split(',')) for word in numstr.split(' ')]
     result = 0
     magnitude = 0
+    andcount = 0
 
     for word in words:
         if word == 'and':
             result += magnitude
             magnitude = 0
-            continue
+            andcount += 1
+        else: 
+            num = None
+            try: num = int(word)
+            except ValueError:
+                try: num = float(word)
+                except ValueError: pass
 
-        num = None
-        try: num = int(word)
-        except ValueError:
-            try: num = float(word)
-            except ValueError: pass
-
-        if num is not None: # word is not spelled-out
-            magnitude = num
-        else: # word is spelled-out
-            if word in _str2num:
-                num = _str2num[word]
-                if num < 100:
-                    magnitude += num
-                elif num == 100:
-                    magnitude *= 100
-                else:
-                    result += magnitude * num
+            if num is not None: # word is not spelled-out
+                magnitude = num
+            else: # word is spelled-out
+                if word in _str2num:
+                    num = _str2num[word]
+                    if num < 100:
+                        magnitude += num
+                    elif num == 100:
+                        magnitude *= 100
+                    else:
+                        result += magnitude * num
+                        magnitude = 0
+                elif word in _str2denom:
+                    denom = _str2denom[word]
+                    if andcount: # like 'three and a half'
+                        if int(magnitude) == magnitude:
+                            result += Fraction(int(magnitude), denom)
+                        else:
+                            result += float(magnitude) / float(denom)
+                    else: # like 'three halves'
+                        result += magnitude
+                        if int(result) == result:
+                            result = Fraction(int(result), denom)
+                        else:
+                            result = float(result) / float(denom)
                     magnitude = 0
-            elif word in _str2denom:
-                denom = _str2denom[word]
-                if int(magnitude) == magnitude:
-                    result += Fraction(int(magnitude), denom)
                 else:
-                    result += float(magnitude) / float(denom)
-                magnitude = 0
-            else:
-                raise ValueError("Could not parse '%s' into a number, because"
-                        " did not recognize the word '%s'" % (numstr, word))
+                    raise ValueError("Could not parse '%s' into a number, because"
+                            " did not recognize the word '%s'" % (numstr, word))
 
     result += magnitude
     if int(result) == result and not isinstance(result, Fraction):
@@ -112,11 +129,6 @@ def sigfig_round(num, sig_figs):
                 " zero." % str(sig_figs))
 
     if num != 0:
-        x = round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
-        return x
+        return round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
     else:
         return 0.0  # Can't take the log of 0
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
