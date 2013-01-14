@@ -57,7 +57,8 @@ class test_parsenum(unittest.TestCase):
         for numstr, result in [('twenty six', 26), 
                 ('five hundred twelve', 512), 
                 ('one thousand three hundred fifty two', 1352),
-                ('fifteen million and thirty eight', 15000038)]:
+                ('fifteen million and thirty eight', 15000038),
+                ('twelve hundred', 1200)]:
             self.assertEquals(parsenum(numstr), result) 
 
     def test_fractions(self):

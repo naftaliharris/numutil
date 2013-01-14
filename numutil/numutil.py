@@ -7,7 +7,7 @@ _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('nine', 9), ('ten', 10), ('eleven', 11), ('twelve', 12),
     ('thirteen', 13), ('fourteen', 14), ('fifteen', 15), ('sixteen', 16),
     ('seventeen', 17), ('eighteen', 18), ('nineteen', 19), ('twenty', 20),
-    ('thirty', 30), ('fourty', 40), ('fifty', 50), ('sixty', 60),
+    ('thirty', 30), ('forty', 40), ('fifty', 50), ('sixty', 60),
     ('seventy', 70), ('eighty', 80), ('ninety', 90), ('hundred', 100),
     ('thousand', 10 ** 3), ('million', 10 ** 6), ('billion', 10 ** 9),
     ('trillion', 10 ** 12), ('quadrillion', 10 ** 15),
@@ -42,9 +42,38 @@ def parsenum(numstr):
 
     # Try to parse numstr as a word-mix
     numstr = numstr.lower()
-    words = numstr.split(' ')
+    words = [''.join(word.split(',')) for word in numstr.split(' ')]
     result = 0
     magnitude = 0
+
+    for word in words:
+        if word == 'and':
+            continue
+
+        num = None
+        try: num = int(word)
+        except ValueError:
+            try: num = float(word)
+            except ValueError: pass
+
+        if num is not None: # word is not spelled-out
+            magnitude = num
+        else: # word is spelled-out
+            if word in _str2num:
+                num = _str2num[word]
+            else:
+                raise ValueError("Could not parse '%s' into a number, because"
+                        " did not recognize the word '%s'" % (numstr, word))
+            if num < 100:
+                magnitude += num
+            elif num == 100:
+                magnitude *= 100
+            else:
+                result += magnitude * num
+                magnitude = 0
+
+    result += magnitude
+    return int(result) if int(result) == result else result
 
     # Failure, so raise a ValueError
     raise ValueError("Could not parse '%s' into a number" % numstr)
