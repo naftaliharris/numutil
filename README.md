@@ -7,3 +7,5 @@ For example,
     >>> from numutil import parsenum
     >>> parsenum('1.3 million')
     1300000
+    >>> parsenum('three and a half')
+    Fraction(7, 2)

@@ -14,7 +14,7 @@ _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('trillion', 10 ** 12), ('quadrillion', 10 ** 15),
     ('quintillion', 10 ** 18), ('sextillion', 10 ** 21),
     ('septillion', 10 ** 24), ('octillion', 10 ** 27),
-    ('nonillion', 10 ** 30)])
+    ('nonillion', 10 ** 30), ('a', 1)])
 
 _str2denom = dict([('half', 2), ('third', 3), ('fourth', 4), ('fifth', 5),
     ('sixth', 6), ('seventh', 7), ('eighth', 8), ('ninth', 9), ('tenth', 10),
@@ -65,6 +65,8 @@ def parsenum(numstr):
 
     for word in words:
         if word == 'and':
+            result += magnitude
+            magnitude = 0
             continue
 
         num = None
@@ -97,10 +99,10 @@ def parsenum(numstr):
                         " did not recognize the word '%s'" % (numstr, word))
 
     result += magnitude
-    return int(result) if int(result) == result else result
-
-    # Failure, so raise a ValueError
-    raise ValueError("Could not parse '%s' into a number" % numstr)
+    if int(result) == result and not isinstance(result, Fraction):
+        return int(result)
+    else:
+        return result
 
 def sigfig_round(num, sig_figs):
     """rounds num to a given number of significant digits, sig_figs.
@@ -111,9 +113,9 @@ def sigfig_round(num, sig_figs):
 
     if num != 0:
         x = round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
-        return int(x) if int(x) == x else x
+        return x
     else:
-        return 0  # Can't take the log of 0
+        return 0.0  # Can't take the log of 0
 
 if __name__ == "__main__":
     import doctest
