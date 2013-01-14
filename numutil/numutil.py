@@ -1,6 +1,6 @@
 """numutil.py"""
 
-from math import log10
+from math import log10, floor
 from fractions import Fraction
 
 _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
@@ -101,9 +101,14 @@ def parsenum(numstr):
     raise ValueError("Could not parse '%s' into a number" % numstr)
 
 def sigfig_round(num, sig_figs):
-    """rounds x to a given number of significant digits"""
+    """rounds num to a given number of significant digits, sig_figs.
+    sig_figs must a positive integer, or else this throws a ValueError"""
+    if sig_figs <= 0:
+        raise ValueError("sig_figs is %s, but must be strictly greater than"
+                " zero." % str(sig_figs))
+
     if num != 0:
-        x = round(num, -int(math.floor(log10(abs(num))) - (sig_figs - 1)))
+        x = round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
         return int(x) if int(x) == x else x
     else:
         return 0  # Can't take the log of 0

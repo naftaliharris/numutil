@@ -1,5 +1,5 @@
 import unittest
-from numutil import parsenum
+from numutil import parsenum, sigfig_round
 from fractions import Fraction
 
 class test_parsenum(unittest.TestCase):
@@ -38,8 +38,9 @@ class test_parsenum(unittest.TestCase):
             self.assertEquals(parsenum(numstr), result)
 
     def test_nonints(self):
-        for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk']:
-            self.assertRaises(ValueError, lambda: parsenum(''))
+        for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk', 
+                'and', 'the', 's']:
+            self.assertRaises(ValueError, lambda: parsenum(numstr))
 
     def test_newspaper_ints(self):
         for numstr, result in [('1 thousand', 10 ** 3), ('1 million', 10 ** 6),
@@ -72,3 +73,28 @@ class test_parsenum(unittest.TestCase):
                 ('sixtieth', 60), ('seventieth', 70), ('eightieth', 80),
                 ('ninetieth', 90)]:
             self.assertEquals(parsenum('one ' + denomstr), Fraction(1, denom))
+            self.assertEquals(parsenum('3 ' + denomstr + 's'), Fraction(3, denom))
+
+class test_sigfig_round(unittest.TestCase):
+    """tests the sigfig_round function"""
+    def test_100(self):
+        for x in [0, -1, 1, 109234, -120934, 1.19230413, -19203.01924,
+                1.109324E100, -4.3E100]:
+            self.assertEquals(sigfig_round(x, 100), x)
+
+    def test_0(self):
+        for x in [0, -1, 1, 109234, -120934, 1.19230413, -19203.01924,
+                1.109324E100, -4.3E100]:
+            self.assertRaises(ValueError, lambda: sigfig_round(x, 0))
+
+    def test_1(self):
+        for x, x_round in [(0, 0), (-1, -1), (1, 1), (109234, 100000),
+                (-120934, -100000), (1.19230413, 1.0), (-19203.01924, -20000),
+                (1.109324E100, 1E100), (-4.3E100, -4E100)]:
+            self.assertEquals(sigfig_round(x, 1), x_round)
+
+    def test_3(self):
+        for x, x_round in [(0, 0), (-1, -1), (1, 1), (109234, 109000),
+                (-120934, -121000), (1.19230413, 1.19), (-19203.01924, -19200),
+                (1.109324E100, 1.11E100), (-4.0E100, -4E100)]:
+            self.assertEquals(sigfig_round(x, 3), x_round)
