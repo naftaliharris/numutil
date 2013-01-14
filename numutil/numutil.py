@@ -37,8 +37,10 @@ def parsenum(numstr):
     the number. If it doesn't find a number, it will raise a ValueError.
 
     Example:
+    >>> from numutil import parsenum
     >>> parsenum('4.5 million')
     4500000
+
     """
 
     # See if the number is of form str(num)
