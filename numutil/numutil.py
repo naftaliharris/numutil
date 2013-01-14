@@ -1,6 +1,7 @@
 """numutil.py"""
 
 from math import log10
+from fractions import Fraction
 
 _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('four', 4), ('five', 5), ('six', 6), ('seven', 7), ('eight', 8),
@@ -15,7 +16,21 @@ _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('septillion', 10 ** 24), ('octillion', 10 ** 27),
     ('nonillion', 10 ** 30)])
 
-_num2str = dict((y, x) for x, y in _str2num.items())
+_str2denom = dict([('half', 2), ('third', 3), ('fourth', 4), ('fifth', 5),
+    ('sixth', 6), ('seventh', 7), ('eighth', 8), ('ninth', 9), ('tenth', 10),
+    ('eleventh', 11), ('twelfth', 12), ('thirteenth', 13), ('fourteenth', 14),
+    ('fifteenth', 15), ('sixteenth', 16), ('seventeenth', 17),
+    ('eighteenth', 18), ('nineteenth', 19), ('twentieth', 20),
+    ('thirtieth', 30), ('fortieth', 40), ('fiftieth', 50), ('sixtieth', 60),
+    ('seventieth', 70), ('eightieth', 80), ('ninetieth', 90)])
+
+# Add plurals
+for denomstr, denom in _str2denom.items():
+    _str2denom[denomstr + 's'] = denom
+
+# Make reverse dictionaries
+_num2str = dict((y, x) for x, y in _str2num.iteritems())
+_denom2str = dict((y, x) for x, y in _str2denom.iteritems())
 
 def parsenum(numstr):
     """parsenum takes a string representation of a number, and returns 
@@ -61,16 +76,23 @@ def parsenum(numstr):
         else: # word is spelled-out
             if word in _str2num:
                 num = _str2num[word]
+                if num < 100:
+                    magnitude += num
+                elif num == 100:
+                    magnitude *= 100
+                else:
+                    result += magnitude * num
+                    magnitude = 0
+            elif word in _str2denom:
+                denom = _str2denom[word]
+                if int(magnitude) == magnitude:
+                    result += Fraction(int(magnitude), denom)
+                else:
+                    result += float(magnitude) / float(denom)
+                magnitude = 0
             else:
                 raise ValueError("Could not parse '%s' into a number, because"
                         " did not recognize the word '%s'" % (numstr, word))
-            if num < 100:
-                magnitude += num
-            elif num == 100:
-                magnitude *= 100
-            else:
-                result += magnitude * num
-                magnitude = 0
 
     result += magnitude
     return int(result) if int(result) == result else result
