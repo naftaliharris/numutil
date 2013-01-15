@@ -28,13 +28,14 @@ _str2denom = dict([('half', 2), ('third', 3), ('fourth', 4), ('fifth', 5),
 # Add plurals
 for denomstr, denom in _str2denom.items():
     _str2denom[denomstr + 's'] = denom
+_str2denom['halves'] = 2
 
 # Make reverse dictionaries
 _num2str = dict((y, x) for x, y in _str2num.iteritems() if x != 'a')
-_denom2str = dict((y, x) for x, y in _str2denom.iteritems())
+_denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'halfs')
 
 # Strings that aren't numbers
-_special_nonnum_strs = set(['and', 'a'])
+_special_nonnum_strs = set(['and', 'a', '', '-'])
 
 def parsenum(numstr):
     """parsenum takes a string representation of a number, and returns 
@@ -69,7 +70,8 @@ def parsenum(numstr):
     numstr = numstr.lower()
     if numstr in _special_nonnum_strs:
         raise ValueError("Could not parse '%s' into a number" % numstr)
-    words = [''.join(word.split(',')) for word in re.split(r'[- ]', numstr)]
+    words = [''.join(word.split(',')) for word in re.split(r'[- ]*', numstr)
+            if word != '']
     result = 0
     magnitude = 0
     andcount = 0

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import unittest
 import doctest
 from numutil import parsenum, sigfig_round
@@ -28,9 +31,6 @@ class test_parsenum(unittest.TestCase):
             guess = parsenum(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
-
-    def test_empty_str(self):
-        self.assertRaises(ValueError, lambda: parsenum(''))
 
     def test_unit_words(self):
         for numstr, result in [('zero', 0), ('one', 1), ('two', 2), 
@@ -64,7 +64,7 @@ class test_parsenum(unittest.TestCase):
 
     def test_nonints(self):
         for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk', 
-                'and', 'the', 's', 'a', '-']:
+                'and', 'the', 's', 'a', '-', '']:
             self.assertRaises(ValueError, lambda: parsenum(numstr))
 
     def test_newspaper_ints(self):
@@ -142,6 +142,22 @@ class test_parsenum(unittest.TestCase):
     def test_word_num_mix(self):
         for numstr, result in [('twenty 6', 26), ('one-hundred 9', 109),
                 ('20 five', 25), ('5 sixths', Fraction(5, 6))]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+
+    def test_unicode(self):
+        for numstr, result in [(u'125', 125), (u'124.5', 124.5),
+                (u'five sixths', Fraction(5, 6)), (u'one million', 1000000)]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+        for numstr in [u'şimal', u'汉语漢語', u'תירִבְעִ']:
+            self.assertRaises(ValueError, lambda: parsenum(numstr))
+
+    def test_cap_and_space(self):
+        for numstr, result in [('TWENTY FIVE', 25), ('Thirty  six', 36),
+                ('ONE hundred and Five', 105), (' One  Hundred   SIX ', 106)]:
             guess = parsenum(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
