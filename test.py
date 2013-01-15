@@ -13,6 +13,22 @@ class test_parsenum(unittest.TestCase):
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
+    def test_floats(self):
+        for numstr, result in [('0.0', 0.0), ('-1.0', -1.0), ('1.0', 1.0), 
+                ('123456789.0', 123456789.0), ('-123456789.0', -123456789.0),
+                ('4.32E10', 4.32E10), ('-2.3e-23', -2.3e-23), 
+                ('0.00043', 0.00043), ('-0.23', -0.23), ('1000.0', 1000.0)]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+
+    def test_comma_floats(self):
+        for numstr, result in [('123,456,789.0', 123456789.0),
+                ('-123,456,789.0', -123456789.0), ('1,000.0', 1000.0)]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+
     def test_empty_str(self):
         self.assertRaises(ValueError, lambda: parsenum(''))
 
@@ -48,7 +64,7 @@ class test_parsenum(unittest.TestCase):
 
     def test_nonints(self):
         for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk', 
-                'and', 'the', 's', 'a']:
+                'and', 'the', 's', 'a', '-']:
             self.assertRaises(ValueError, lambda: parsenum(numstr))
 
     def test_newspaper_ints(self):
@@ -115,6 +131,20 @@ class test_parsenum(unittest.TestCase):
                     + denomstr)
             self.assertEqual(guess, 12345678 + Fraction(1, denom))
             self.assertEqual(type(guess), type(12345678 + Fraction(1, denom)))
+
+    def test_dashes(self):
+        for numstr, result in [('twenty-six', 26), ('one-hundred nine', 109),
+                ('twenty-five', 25), ('five-sixths', Fraction(5, 6))]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+
+    def test_word_num_mix(self):
+        for numstr, result in [('twenty 6', 26), ('one-hundred 9', 109),
+                ('20 five', 25), ('5 sixths', Fraction(5, 6))]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
 
 class test_sigfig_round(unittest.TestCase):
     """tests the sigfig_round function"""

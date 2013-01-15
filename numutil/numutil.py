@@ -1,5 +1,6 @@
 """numutil.py"""
 
+import re
 from math import log10, floor
 from fractions import Fraction
 
@@ -29,7 +30,7 @@ for denomstr, denom in _str2denom.items():
     _str2denom[denomstr + 's'] = denom
 
 # Make reverse dictionaries
-_num2str = dict((y, x) for x, y in _str2num.iteritems())
+_num2str = dict((y, x) for x, y in _str2num.iteritems() if x != 'a')
 _denom2str = dict((y, x) for x, y in _str2denom.iteritems())
 
 # Strings that aren't numbers
@@ -68,7 +69,7 @@ def parsenum(numstr):
     numstr = numstr.lower()
     if numstr in _special_nonnum_strs:
         raise ValueError("Could not parse '%s' into a number" % numstr)
-    words = [''.join(word.split(',')) for word in numstr.split(' ')]
+    words = [''.join(word.split(',')) for word in re.split(r'[- ]', numstr)]
     result = 0
     magnitude = 0
     andcount = 0
@@ -86,7 +87,7 @@ def parsenum(numstr):
                 except ValueError: pass
 
             if num is not None: # word is not spelled-out
-                magnitude = num
+                magnitude += num
             else: # word is spelled-out
                 if word in _str2num:
                     num = _str2num[word]
@@ -123,7 +124,16 @@ def parsenum(numstr):
 
 def sigfig_round(num, sig_figs):
     """rounds num to a given number of significant digits, sig_figs.
-    sig_figs must a positive integer, or else this throws a ValueError"""
+    sig_figs must a positive integer, or else this throws a ValueError
+    sigfig_round always returns a float. 
+
+    >>> from numutil import sigfig_round
+    >>> sigfig_round(1.2345, 3)
+    1.23
+    >>> sigfig_round(1234567890, 5)
+    1234600000.0
+    
+    """
     if sig_figs <= 0:
         raise ValueError("sig_figs is %s, but must be strictly greater than"
                 " zero." % str(sig_figs))
