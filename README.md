@@ -9,6 +9,8 @@ For example,
     1300000
     >>> parsenum('three and a half')
     Fraction(7, 2)
+    >>> parsenum('123,456.789')
+    123456.789
 
 Installation
 ------------
@@ -23,7 +25,7 @@ Testing
 numutil is well-tested, with almost a hundred percent coverage, as determined
 by 
 
-    $ nosetests --with-coverage
+    $ nosetests --with-coverage test.py
 
 You can test numutil yourself with
     

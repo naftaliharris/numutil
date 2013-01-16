@@ -23,7 +23,12 @@ _str2denom = dict([('half', 2), ('third', 3), ('fourth', 4), ('fifth', 5),
     ('fifteenth', 15), ('sixteenth', 16), ('seventeenth', 17),
     ('eighteenth', 18), ('nineteenth', 19), ('twentieth', 20),
     ('thirtieth', 30), ('fortieth', 40), ('fiftieth', 50), ('sixtieth', 60),
-    ('seventieth', 70), ('eightieth', 80), ('ninetieth', 90)])
+    ('seventieth', 70), ('eightieth', 80), ('ninetieth', 90),
+    ('hundredth', 100), ('thousandth', 1000), ('millionth', 10 ** 6),
+    ('billionth', 10 ** 9), ('trillionth', 10 ** 12),
+    ('quadrillionth', 10 ** 15), ('quintillionth', 10 ** 18),
+    ('sextillionth', 10 ** 21), ('septillionth', 10 ** 24),
+    ('octillionth', 10 ** 27), ('nonillionth', 10 ** 30)])
 
 # Add plurals
 for denomstr, denom in _str2denom.items():
@@ -52,19 +57,16 @@ def parsenum(numstr):
 
     """
 
-    # See if the number is of form str(num)
-    try: return int(numstr)
+    # See if the number is of form str(num), or closely related
+    try: return int(numstr.replace(',', ''))
     except ValueError: pass
 
-    try: return float(numstr)
+    try: return float(numstr.replace(',', ''))
     except ValueError: pass
 
-    # See if the number just has commas
-    try: return int("".join(numstr.split(',')))
-    except ValueError: pass
-
-    try: return float("".join(numstr.split(',')))
-    except ValueError: pass
+    m = re.match(r'[ ]*[-]?[0-9,]+[ ]*/[ ]*[0-9,]+[ ]*', numstr)
+    if m:
+        return Fraction(re.sub(r'[, ]*', '', numstr))
 
     # Try to parse numstr as a word-mix
     numstr = numstr.lower()

@@ -25,6 +25,16 @@ class test_parsenum(unittest.TestCase):
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
+    def test_ordinary_fractions(self):
+        for numstr, result in[('1/2', Fraction(1, 2)),
+                ('1 / 2', Fraction(1, 2)), ('1/3', Fraction(1, 3)),
+                ('6/5', Fraction(6, 5)), ('6/ 6', Fraction(6, 6)),
+                (' 6,343 /5 ', Fraction(6343, 5)), (' 6/ 6 ', Fraction(6, 6)),
+                ('0/5', Fraction(0, 5)), ('-6/7', Fraction(-6, 7))]:
+            guess = parsenum(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+
     def test_comma_floats(self):
         for numstr, result in [('123,456,789.0', 123456789.0),
                 ('-123,456,789.0', -123456789.0), ('1,000.0', 1000.0)]:
@@ -33,29 +43,29 @@ class test_parsenum(unittest.TestCase):
             self.assertEqual(type(guess), type(result))
 
     def test_unit_words(self):
-        for numstr, result in [('zero', 0), ('one', 1), ('two', 2), 
-                ('three', 3), ('four', 4), ('five', 5), ('six', 6), 
-                ('seven', 7), ('eight', 8), ('nine', 9), ('ten', 10), 
-                ('eleven', 11), ('twelve', 12), ('thirteen', 13), 
+        for numstr, result in [('zero', 0), ('one', 1), ('two', 2),
+                ('three', 3), ('four', 4), ('five', 5), ('six', 6),
+                ('seven', 7), ('eight', 8), ('nine', 9), ('ten', 10),
+                ('eleven', 11), ('twelve', 12), ('thirteen', 13),
                 ('fourteen', 14), ('fifteen', 15), ('sixteen', 16),
                 ('seventeen', 17), ('eighteen', 18), ('nineteen', 19),
                 ('twenty', 20), ('thirty', 30), ('forty', 40), ('fifty', 50),
-                ('sixty', 60), ('seventy', 70), ('eighty', 80), 
+                ('sixty', 60), ('seventy', 70), ('eighty', 80),
                 ('ninety', 90)]:
             guess = parsenum(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
     def test_comma_ints(self):
-        for numstr, result in [('1,234', 1234), ('12,345', 12345), 
-                ('123,456', 123456), ('1,234,567', 1234567), 
+        for numstr, result in [('1,234', 1234), ('12,345', 12345),
+                ('123,456', 123456), ('1,234,567', 1234567),
                 ('12,345,678', 12345678), ('123,456,789', 123456789),
                 ('1,234,567,890', 1234567890)]:
             guess = parsenum(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
-        for numstr, result in [('-1,234', -1234), ('-12,345', -12345), 
-                ('-123,456', -123456), ('-1,234,567', -1234567), 
+        for numstr, result in [('-1,234', -1234), ('-12,345', -12345),
+                ('-123,456', -123456), ('-1,234,567', -1234567),
                 ('-12,345,678', -12345678), ('-123,456,789', -123456789),
                 ('-1,234,567,890', -1234567890)]:
             guess = parsenum(numstr)
@@ -63,7 +73,7 @@ class test_parsenum(unittest.TestCase):
             self.assertEqual(type(guess), type(result))
 
     def test_nonints(self):
-        for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk', 
+        for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk',
                 'and', 'the', 's', 'a', '-', '']:
             self.assertRaises(ValueError, lambda: parsenum(numstr))
 
