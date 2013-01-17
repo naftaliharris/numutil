@@ -146,3 +146,96 @@ def sigfig_round(num, sig_figs):
         return round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
     else:
         return 0.0  # Can't take the log of 0
+
+def prettynum(num, **kwds):
+    """Turns the number num into a pretty string.
+
+    Possible keywords:
+    sig_figs:   if not None, it will round num to the specified number of
+                significant digits. Has no effect on Fractions.
+                Default is None, ie, no rounding
+
+    mode:       if 'commas', it will display numbers with commas
+                if 'nocommas', it will display numbers without any commas
+                if 'words', it will display numbers with words
+                if 'newspaper', it will display numbers like in newspapers,
+                    eg, '1.3 billion'
+                Default is 'commas'
+
+    frac_mode:  if 'mixed', it will display fractions as mixed, like '1 1/2'
+                if 'improper', it will display fractions as improper, like '3/2'
+                Default is 'mixed'
+
+    Notes:
+    1) Fractions with denominators are converted into ints.
+
+    Examples:
+    >>> from numutil import prettynum
+
+    """
+
+    # Unpack the arguments
+    sig_figs = kwds['sig_figs'] if 'sig_figs' in kwds else None
+    mode = kwds['mode'] if 'mode' in kwds else 'commas'
+    frac_mode = kwds['frac_mode'] if 'frac_mode' in kwds else 'mixed'
+
+    # Fractions
+    numerator, denominator = None, None
+    try: # use ducktyping
+        numerator = num.numerator
+        denominator = num.denominator
+    except AttributeError:
+        pass
+
+    if numerator is not None and denominator != 1:
+
+        # negative numerators make the divmod trick not work
+        if numerator < 0:
+            numerator *= -1
+            result = "negative " if mode == 'words' else '-'
+        else:
+            result = ""
+
+        if frac_mode == 'mixed':
+            wholepart, numerator = divmod(numerator, denominator)
+            if wholepart:
+                result += prettynum(wholepart, **kwds)
+                result += " and " if mode == 'words' else " "
+
+        result += prettynum(numerator, **kwds)
+        result += " " if mode == 'words' else "/"
+        result += prettynum(denominator, **kwds) # fix this
+
+        return result
+
+    # Round and simplify to int if possible
+    if sig_figs is not None:
+        num = sigfig_round(num, sig_figs)
+        if num == int(num):
+            num = int(num)
+
+    if mode == 'nocommas':
+        return str(num)
+    elif mode == 'commas':
+        if num < 0: # negative nums mess with divmods
+            return '-' + prettynum(-num, **kwds)
+
+        result = '.' + str(num).split('.')[1] if isinstance(num, float) else ''
+        while num >= 1000:
+            num, r = divmod(num, 1000)
+            result = ",%d%s" % (r, result)
+        return "%d%s" % (num, result)
+    elif mode == 'newspaper':
+        """
+        d = int(log10(num) // 3) * 3
+
+        if 10 ** d in _num2str and d > 3:
+            y = sigfig_round(num / (10 ** d), sigfigs)
+            y = int(y) if y == int(y) else y
+            return str(y) + ' ' + _num2str[10 ** d]
+            """
+        pass
+    elif mode == 'words':
+        pass
+    else:
+        raise ValueError("Unrecognized mode: '%s'" % mode)
