@@ -155,24 +155,61 @@ def prettynum(num, **kwds):
                 significant digits. Has no effect on Fractions.
                 Default is None, ie, no rounding
 
+                Examples:
+
+                >>> from numutil import prettynum
+                >>> prettynum(12.345)
+                '12.345'
+                >>> prettynum(12.345, sig_figs=3)
+                '12.3'
+                >>> prettynum(12.345, sig_figs=1)
+                '10'
+
     mode:       if 'commas', it will display numbers with commas
                 if 'nocommas', it will display numbers without any commas
                 if 'words', it will display numbers with words
                 if 'newspaper', it will display numbers like in newspapers,
-                    eg, '1.3 billion'
+                    eg, '1.3 billion'. Numbers less than a million will be
+                    displayed in comma format, because '12.34 thousand'
+                    is never used in newspapers.
                 Default is 'commas'
+
+                Examples:
+
+                >>> from numutil import prettynum
+                >>> prettynum(1234567890, mode='commas')
+                '1,234,567,890'
+                >>> prettynum(1234567890, mode='nocommas')
+                '1234567890'
+                >>> prettynum(1234567890, mode='newspaper', sig_figs=3)
+                '1.23 billion'
+                >>> prettynum(123456, mode='newspaper', sig_figs=3)
+                '123,000'
+
 
     frac_mode:  if 'mixed', it will display fractions as mixed, like '1 1/2'
                 if 'improper', it will display fractions as improper, like '3/2'
                 Default is 'mixed'
 
+                Examples:
+
+                >>> from numutil import prettynum
+                >>> from fractions import Fraction
+                >>> prettynum(Fraction(3, 2), frac_mode='mixed')
+                '1 1/2'
+                >>> prettynum(Fraction(3, 2), frac_mode='improper')
+                '3/2'
+
     Notes:
     1) Fractions with denominators are converted into ints.
 
-    Examples:
-    >>> from numutil import prettynum
-
     """
+
+    # Test the arguments for misspellings
+    for arg in kwds:
+        if arg not in set(('sig_figs', 'mode', 'frac_mode')):
+            raise TypeError("'%s' is not a valid option. Maybe you misspelled"
+                    " the option you're looking for?" % arg)
 
     # Unpack the arguments
     sig_figs = kwds['sig_figs'] if 'sig_figs' in kwds else None
@@ -223,19 +260,25 @@ def prettynum(num, **kwds):
         result = '.' + str(num).split('.')[1] if isinstance(num, float) else ''
         while num >= 1000:
             num, r = divmod(num, 1000)
-            result = ",%d%s" % (r, result)
+            result = ",%03d%s" % (r, result)
         return "%d%s" % (num, result)
     elif mode == 'newspaper':
-        """
-        d = int(log10(num) // 3) * 3
+        # nonpositive nums mess with logs
+        if num < 0:
+            return '-' + prettynum(-num, **kwds)
+        elif num == 0:
+            return '0'
 
+        d = int(log10(num) / 3) * 3
         if 10 ** d in _num2str and d > 3:
-            y = sigfig_round(num / (10 ** d), sigfigs)
+            y = float(num) / (10 ** d)
             y = int(y) if y == int(y) else y
             return str(y) + ' ' + _num2str[10 ** d]
-            """
-        pass
+        else:
+            kwds['mode'] = 'commas'
+            return prettynum(num, **kwds)
+            
     elif mode == 'words':
-        pass
+        raise NotImplementedError
     else:
         raise ValueError("Unrecognized mode: '%s'" % mode)
