@@ -3,6 +3,7 @@
 import re
 from math import log10, floor
 from fractions import Fraction
+from collections import deque
 
 _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('four', 4), ('five', 5), ('six', 6), ('seven', 7), ('eight', 8),
@@ -276,7 +277,7 @@ def prettynum(num, **kwds):
         if sig_figs is not None:
             if isinstance(num, float):
                 return str(num) + '0' * (sig_figs - (len(str(num)) - 1))
-            elif isinstance(num, int):
+            elif isinstance(num, (int, long)):
                 res = str(num)
                 if len(res) >= sig_figs:
                     return res
@@ -321,12 +322,24 @@ def prettynum(num, **kwds):
             return prettynum(num, **kwds)
             
     elif mode == 'words':
+        if num < 0:
+            return "negative " + prettynum(-num, **kwds)
         if isinstance(num, float):
             raise NotImplementedError
-        elif isinstance(num, int):
-            result = ""
+        elif isinstance(num, (int, long)):
+            if num == 0:
+                return "zero"
+            results = deque()
+            mod_by = 1
+            while num > 0:
+                num, r = divmod(num, 1000)
+                if r != 0:
+                    results.appendleft(_small_wordify(r) + \
+                        (' ' + _num2str[mod_by] if mod_by != 1 else ''))
+                mod_by *= 1000
+            return ", ".join(results)
         else:
-            raise NotImplementedError
+            raise TypeError("Don't know how to turn %s into words" % type(num))
 
     else:
         raise ValueError("Unrecognized mode: '%s'" % mode)

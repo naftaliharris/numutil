@@ -259,7 +259,7 @@ class test_prettynum(unittest.TestCase):
                 (123456, 'one hundred twenty three thousand, four hundred fifty six'),
                 (1234567, 'one million, two hundred thirty four thousand, five hundred sixty seven'),
                 (12345678, 'twelve million, three hundred forty five thousand, six hundred seventy eight'),
-                (1000000001, 'one billion, one'), (10000001001, 'one billion, one thousand, one')]:
+                (1000000001, 'one billion, one'), (1000001001, 'one billion, one thousand, one')]:
             guess = prettynum(num, mode="words")
             self.assertEqual(guess, result)
 

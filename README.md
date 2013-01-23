@@ -13,6 +13,8 @@ For example,
     123456.789
     >>> prettynum(1234567, mode='newspaper')
     '1.23 million'
+    >>> prettynum(1234567, mode='words')
+    'one million, two hundred thirty four thousand, five hundred sixty seven'
 
 Installation
 ------------
