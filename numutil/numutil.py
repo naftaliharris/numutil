@@ -90,9 +90,9 @@ def parsenum(numstr):
                 try: num = float(word)
                 except ValueError: pass
 
-            if num is not None: # word is not spelled-out
+            if num is not None:  # word is not spelled-out
                 magnitude += num
-            else: # word is spelled-out
+            else:  # word is spelled-out
                 if word in _str2num:
                     num = _str2num[word]
                     if num < 100:
@@ -104,12 +104,12 @@ def parsenum(numstr):
                         magnitude = 0
                 elif word in _str2denom:
                     denom = _str2denom[word]
-                    if andcount: # like 'three and a half'
+                    if andcount:  # like 'three and a half'
                         if int(magnitude) == magnitude:
                             result += Fraction(int(magnitude), denom)
                         else:
                             result += float(magnitude) / float(denom)
-                    else: # like 'three halves'
+                    else:  # like 'three halves'
                         result += magnitude
                         if int(result) == result:
                             result = Fraction(int(result), denom)
@@ -146,6 +146,23 @@ def sigfig_round(num, sig_figs):
         return round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
     else:
         return 0.0  # Can't take the log of 0
+
+def _small_wordify(num):
+    """Turns num, an int 0 <= num < 1000, into words. For internal use only."""
+    if num < 20:
+        return _num2str[num]
+    else:
+        results = [_num2str[(num // 100)] + " hundred"] if num >= 100 else []
+        num %= 100
+        if num == 0:
+            pass
+        elif 0 < num < 20:
+            results.append(_num2str[num])
+        else:
+            results.append(_num2str[(num // 10) * 10])
+            if num % 10 != 0:
+                results.append(_num2str[num % 10])
+        return " ".join(results)
 
 def prettynum(num, **kwds):
     """Turns the number num into a pretty string.
@@ -222,7 +239,7 @@ def prettynum(num, **kwds):
 
     # Fractions
     numerator, denominator = None, None
-    try: # use ducktyping
+    try:  # use ducktyping
         numerator = num.numerator
         denominator = num.denominator
     except AttributeError:
@@ -245,7 +262,7 @@ def prettynum(num, **kwds):
 
         result += prettynum(numerator, **kwds)
         result += " " if mode == 'words' else "/"
-        result += prettynum(denominator, **kwds) # XXX fix this
+        result += prettynum(denominator, **kwds)  # XXX fix this
 
         return result
 
@@ -270,8 +287,9 @@ def prettynum(num, **kwds):
                 return str(num)
         else:
             return str(num)
+
     elif mode == 'commas':
-        if num < 0: # negative nums mess with divmods
+        if num < 0:  # negative nums mess with divmods
             return '-' + prettynum(-num, **kwds)
 
         if isinstance(num, float):
@@ -285,8 +303,9 @@ def prettynum(num, **kwds):
             num, r = divmod(num, 1000)
             result = ",%03d%s" % (r, result)
         return "%d%s" % (num, result)
+
     elif mode == 'newspaper':
-        if num < 0: # nonpositive nums mess with logs
+        if num < 0:  # nonpositive nums mess with logs
             return '-' + prettynum(-num, **kwds)
         elif num == 0:
             return '0'
@@ -302,6 +321,12 @@ def prettynum(num, **kwds):
             return prettynum(num, **kwds)
             
     elif mode == 'words':
-        raise NotImplementedError
+        if isinstance(num, float):
+            raise NotImplementedError
+        elif isinstance(num, int):
+            result = ""
+        else:
+            raise NotImplementedError
+
     else:
         raise ValueError("Unrecognized mode: '%s'" % mode)

@@ -4,6 +4,7 @@
 import unittest
 import doctest
 from numutil import parsenum, sigfig_round, prettynum
+from numutil.numutil import _small_wordify
 from fractions import Fraction
 
 class test_parsenum(unittest.TestCase):
@@ -238,6 +239,28 @@ class test_prettynum(unittest.TestCase):
                 (0.1234, '0.123'), (-1234.56, '-1,230'),
                 (1200000, '1.20 million'), (12000000, '12.0 million')]:
             guess = prettynum(num, sig_figs=3, mode="newspaper")
+            self.assertEqual(guess, result)
+
+    def test_small_wordify(self):
+        for num, result in [(0, 'zero'), (1, 'one'), (10, 'ten'),
+                (12, 'twelve'), (20, 'twenty'), (43, 'forty three'),
+                (100, 'one hundred'), (101, 'one hundred one'),
+                (123, 'one hundred twenty three'), (130, 'one hundred thirty'),
+                (200, 'two hundred'), (505, 'five hundred five'),
+                (999, 'nine hundred ninety nine')]:
+            guess = _small_wordify(num)
+            self.assertEqual(guess, result)
+
+    def test_words(self):
+        for num, result in [(0, 'zero'), (-1, 'negative one'), (1, 'one'),
+                (12, 'twelve'), (123, 'one hundred twenty three'),
+                (1234, 'one thousand, two hundred thirty four'),
+                (12345, 'twelve thousand, three hundred forty five'),
+                (123456, 'one hundred twenty three thousand, four hundred fifty six'),
+                (1234567, 'one million, two hundred thirty four thousand, five hundred sixty seven'),
+                (12345678, 'twelve million, three hundred forty five thousand, six hundred seventy eight'),
+                (1000000001, 'one billion, one'), (10000001001, 'one billion, one thousand, one')]:
+            guess = prettynum(num, mode="words")
             self.assertEqual(guess, result)
 
 class test_documentation(unittest.TestCase):
