@@ -4,13 +4,15 @@ numutil
 numutil is a python package for converting strings to and from numbers.
 For example,
 
-    >>> from numutil import parsenum
+    >>> from numutil import parsenum, prettynum
     >>> parsenum('1.3 million')
     1300000
     >>> parsenum('three and a half')
     Fraction(7, 2)
     >>> parsenum('123,456.789')
     123456.789
+    >>> prettynum(1234567, mode='newspaper')
+    '1.23 million'
 
 Installation
 ------------

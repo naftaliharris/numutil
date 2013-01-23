@@ -205,6 +205,10 @@ class test_sigfig_round(unittest.TestCase):
 
 class test_prettynum(unittest.TestCase):
     """Tests the prettynum function"""
+
+    def test_argparsing(self):
+        self.assertRaises(TypeError, lambda: prettynum(0, foshizzle='jim'))
+        self.assertRaises(ValueError, lambda: prettynum(0, mode='foshizzle'))
     
     def test_fractions_mixed(self):
         for num, result in [(Fraction(1, 2), '1/2'), (Fraction(3, 2), '1 1/2'),
@@ -224,19 +228,17 @@ class test_prettynum(unittest.TestCase):
         for num, result in [(123456789, '123,456,789'),
                 (1234567.89, '1,234,567.89'), (-1234567, '-1,234,567'),
                 (0, '0'), (1234, '1,234'), (0.1234, '0.1234'),
-                (-1234.56, '-1,234.56')]:
+                (-1234.56, '-1,234.56'), (1000000, '1,000,000')]:
             guess = prettynum(num, mode="commas")
             self.assertEqual(guess, result)
 
     def test_newspaper(self):
-        """
         for num, result in [(123456789, '123 million'),
                 (1234567.89, '1.23 million'), (0, '0'), (1234, '1,230'),
-                (0.1234, '0.1234'), (-1234.56, '-1,234.56')]:
+                (0.1234, '0.123'), (-1234.56, '-1,230'),
+                (1200000, '1.20 million'), (12000000, '12.0 million')]:
             guess = prettynum(num, sig_figs=3, mode="newspaper")
             self.assertEqual(guess, result)
-            """
-        pass
 
 class test_documentation(unittest.TestCase):
     """Doctests the documentation in the files"""

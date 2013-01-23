@@ -171,7 +171,9 @@ def prettynum(num, **kwds):
                 if 'newspaper', it will display numbers like in newspapers,
                     eg, '1.3 billion'. Numbers less than a million will be
                     displayed in comma format, because '12.34 thousand'
-                    is never used in newspapers.
+                    is never used in newspapers. Newspaper mode uses a default
+                    value of sig_figs=3. If you don't want rounding, set
+                    sig_figs=None manually.
                 Default is 'commas'
 
                 Examples:
@@ -181,10 +183,12 @@ def prettynum(num, **kwds):
                 '1,234,567,890'
                 >>> prettynum(1234567890, mode='nocommas')
                 '1234567890'
-                >>> prettynum(1234567890, mode='newspaper', sig_figs=3)
+                >>> prettynum(1234567890, mode='newspaper')
                 '1.23 billion'
-                >>> prettynum(123456, mode='newspaper', sig_figs=3)
+                >>> prettynum(123456, mode='newspaper')
                 '123,000'
+                >>> prettynum(123456, mode='newspaper', sig_figs=None)
+                '123,456'
 
 
     frac_mode:  if 'mixed', it will display fractions as mixed, like '1 1/2'
@@ -200,8 +204,7 @@ def prettynum(num, **kwds):
                 >>> prettynum(Fraction(3, 2), frac_mode='improper')
                 '3/2'
 
-    Notes:
-    1) Fractions with denominators are converted into ints.
+                Note that fractions with denominators are converted into ints.
 
     """
 
@@ -212,9 +215,10 @@ def prettynum(num, **kwds):
                     " the option you're looking for?" % arg)
 
     # Unpack the arguments
-    sig_figs = kwds['sig_figs'] if 'sig_figs' in kwds else None
-    mode = kwds['mode'] if 'mode' in kwds else 'commas'
     frac_mode = kwds['frac_mode'] if 'frac_mode' in kwds else 'mixed'
+    mode = kwds['mode'] if 'mode' in kwds else 'commas'
+    sig_figs = 3 if mode == 'newspaper' else None
+    sig_figs = kwds['sig_figs'] if 'sig_figs' in kwds else sig_figs
 
     # Fractions
     numerator, denominator = None, None
@@ -226,7 +230,7 @@ def prettynum(num, **kwds):
 
     if numerator is not None and denominator != 1:
 
-        # negative numerators make the divmod trick not work
+        # negative numerators mess with the divmod trick
         if numerator < 0:
             numerator *= -1
             result = "negative " if mode == 'words' else '-'
@@ -241,7 +245,7 @@ def prettynum(num, **kwds):
 
         result += prettynum(numerator, **kwds)
         result += " " if mode == 'words' else "/"
-        result += prettynum(denominator, **kwds) # fix this
+        result += prettynum(denominator, **kwds) # XXX fix this
 
         return result
 
@@ -252,19 +256,37 @@ def prettynum(num, **kwds):
             num = int(num)
 
     if mode == 'nocommas':
-        return str(num)
+        if sig_figs is not None:
+            if isinstance(num, float):
+                return str(num) + '0' * (sig_figs - (len(str(num)) - 1))
+            elif isinstance(num, int):
+                res = str(num)
+                if len(res) >= sig_figs:
+                    return res
+                else:
+                    return res + '.' + '0' * (sig_figs - len(res))
+            else:
+                # Not sure what to do
+                return str(num)
+        else:
+            return str(num)
     elif mode == 'commas':
         if num < 0: # negative nums mess with divmods
             return '-' + prettynum(-num, **kwds)
 
-        result = '.' + str(num).split('.')[1] if isinstance(num, float) else ''
+        if isinstance(num, float):
+            result = '.' + str(num).split('.')[1]
+            # Add extra zeros for extra sig_figs
+            if sig_figs is not None:
+                result += '0' * (sig_figs - (len(str(num)) - 1))
+        else:
+            result = ''
         while num >= 1000:
             num, r = divmod(num, 1000)
             result = ",%03d%s" % (r, result)
         return "%d%s" % (num, result)
     elif mode == 'newspaper':
-        # nonpositive nums mess with logs
-        if num < 0:
+        if num < 0: # nonpositive nums mess with logs
             return '-' + prettynum(-num, **kwds)
         elif num == 0:
             return '0'
@@ -273,7 +295,8 @@ def prettynum(num, **kwds):
         if 10 ** d in _num2str and d > 3:
             y = float(num) / (10 ** d)
             y = int(y) if y == int(y) else y
-            return str(y) + ' ' + _num2str[10 ** d]
+            kwds['mode'] = 'nocommas'
+            return prettynum(y, **kwds) + ' ' + _num2str[10 ** d]
         else:
             kwds['mode'] = 'commas'
             return prettynum(num, **kwds)
