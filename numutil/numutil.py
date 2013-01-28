@@ -43,17 +43,17 @@ _denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'halfs')
 # Strings that aren't numbers
 _special_nonnum_strs = set(['and', 'a', '', '-'])
 
-def parsenum(numstr):
-    """parsenum takes a string representation of a number, and returns 
+def str2num(numstr):
+    """str2num takes a string representation of a number, and returns 
     the number. If it doesn't find a number, it will raise a ValueError.
 
     Example:
-    >>> from numutil import parsenum
-    >>> parsenum('4.5 million')
+    >>> from numutil import str2num
+    >>> str2num('4.5 million')
     4500000
-    >>> parsenum('two and a third')
+    >>> str2num('two and a third')
     Fraction(7, 3)
-    >>> parsenum('123,456,789')
+    >>> str2num('123,456,789')
     123456789
 
     """
@@ -165,7 +165,7 @@ def _small_wordify(num):
                 results.append(_num2str[num % 10])
         return " ".join(results)
 
-def prettynum(num, **kwds):
+def num2str(num, **kwds):
     """Turns the number num into a pretty string.
 
     Possible keywords:
@@ -175,12 +175,12 @@ def prettynum(num, **kwds):
 
                 Examples:
 
-                >>> from numutil import prettynum
-                >>> prettynum(12.345)
+                >>> from numutil import num2str
+                >>> num2str(12.345)
                 '12.345'
-                >>> prettynum(12.345, sig_figs=3)
+                >>> num2str(12.345, sig_figs=3)
                 '12.3'
-                >>> prettynum(12.345, sig_figs=1)
+                >>> num2str(12.345, sig_figs=1)
                 '10'
 
     mode:       if 'commas', it will display numbers with commas
@@ -196,16 +196,16 @@ def prettynum(num, **kwds):
 
                 Examples:
 
-                >>> from numutil import prettynum
-                >>> prettynum(1234567890, mode='commas')
+                >>> from numutil import num2str
+                >>> num2str(1234567890, mode='commas')
                 '1,234,567,890'
-                >>> prettynum(1234567890, mode='nocommas')
+                >>> num2str(1234567890, mode='nocommas')
                 '1234567890'
-                >>> prettynum(1234567890, mode='newspaper')
+                >>> num2str(1234567890, mode='newspaper')
                 '1.23 billion'
-                >>> prettynum(123456, mode='newspaper')
+                >>> num2str(123456, mode='newspaper')
                 '123,000'
-                >>> prettynum(123456, mode='newspaper', sig_figs=None)
+                >>> num2str(123456, mode='newspaper', sig_figs=None)
                 '123,456'
 
 
@@ -215,11 +215,11 @@ def prettynum(num, **kwds):
 
                 Examples:
 
-                >>> from numutil import prettynum
+                >>> from numutil import num2str
                 >>> from fractions import Fraction
-                >>> prettynum(Fraction(3, 2), frac_mode='mixed')
+                >>> num2str(Fraction(3, 2), frac_mode='mixed')
                 '1 1/2'
-                >>> prettynum(Fraction(3, 2), frac_mode='improper')
+                >>> num2str(Fraction(3, 2), frac_mode='improper')
                 '3/2'
 
                 Note that fractions with denominators are converted into ints.
@@ -258,12 +258,12 @@ def prettynum(num, **kwds):
         if frac_mode == 'mixed':
             wholepart, numerator = divmod(numerator, denominator)
             if wholepart:
-                result += prettynum(wholepart, **kwds)
+                result += num2str(wholepart, **kwds)
                 result += " and " if mode == 'words' else " "
 
-        result += prettynum(numerator, **kwds)
+        result += num2str(numerator, **kwds)
         result += " " if mode == 'words' else "/"
-        result += prettynum(denominator, **kwds)  # XXX fix this
+        result += num2str(denominator, **kwds)  # XXX fix this
 
         return result
 
@@ -291,7 +291,7 @@ def prettynum(num, **kwds):
 
     elif mode == 'commas':
         if num < 0:  # negative nums mess with divmods
-            return '-' + prettynum(-num, **kwds)
+            return '-' + num2str(-num, **kwds)
 
         if isinstance(num, float):
             result = '.' + str(num).split('.')[1]
@@ -307,7 +307,7 @@ def prettynum(num, **kwds):
 
     elif mode == 'newspaper':
         if num < 0:  # nonpositive nums mess with logs
-            return '-' + prettynum(-num, **kwds)
+            return '-' + num2str(-num, **kwds)
         elif num == 0:
             return '0'
 
@@ -316,14 +316,14 @@ def prettynum(num, **kwds):
             y = float(num) / (10 ** d)
             y = int(y) if y == int(y) else y
             kwds['mode'] = 'nocommas'
-            return prettynum(y, **kwds) + ' ' + _num2str[10 ** d]
+            return num2str(y, **kwds) + ' ' + _num2str[10 ** d]
         else:
             kwds['mode'] = 'commas'
-            return prettynum(num, **kwds)
+            return num2str(num, **kwds)
             
     elif mode == 'words':
         if num < 0:
-            return "negative " + prettynum(-num, **kwds)
+            return "negative " + num2str(-num, **kwds)
         if isinstance(num, float):
             raise NotImplementedError
         elif isinstance(num, (int, long)):

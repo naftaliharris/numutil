@@ -3,17 +3,17 @@
 
 import unittest
 import doctest
-from numutil import parsenum, sigfig_round, prettynum
+from numutil import str2num, sigfig_round, num2str
 from numutil.numutil import _small_wordify
 from fractions import Fraction
 
-class test_parsenum(unittest.TestCase):
-    """Tests the parsenum function"""
+class test_str2num(unittest.TestCase):
+    """Tests the str2num function"""
 
     def test_ints(self):
         for numstr, result in [('0', 0), ('-1', -1), ('1', 1), 
                 ('123456789', 123456789), ('-123456789', -123456789)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -22,7 +22,7 @@ class test_parsenum(unittest.TestCase):
                 ('123456789.0', 123456789.0), ('-123456789.0', -123456789.0),
                 ('4.32E10', 4.32E10), ('-2.3e-23', -2.3e-23), 
                 ('0.00043', 0.00043), ('-0.23', -0.23), ('1000.0', 1000.0)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -32,14 +32,14 @@ class test_parsenum(unittest.TestCase):
                 ('6/5', Fraction(6, 5)), ('6/ 6', Fraction(6, 6)),
                 (' 6,343 /5 ', Fraction(6343, 5)), (' 6/ 6 ', Fraction(6, 6)),
                 ('0/5', Fraction(0, 5)), ('-6/7', Fraction(-6, 7))]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
     def test_comma_floats(self):
         for numstr, result in [('123,456,789.0', 123456789.0),
                 ('-123,456,789.0', -123456789.0), ('1,000.0', 1000.0)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -53,7 +53,7 @@ class test_parsenum(unittest.TestCase):
                 ('twenty', 20), ('thirty', 30), ('forty', 40), ('fifty', 50),
                 ('sixty', 60), ('seventy', 70), ('eighty', 80),
                 ('ninety', 90)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -62,21 +62,21 @@ class test_parsenum(unittest.TestCase):
                 ('123,456', 123456), ('1,234,567', 1234567),
                 ('12,345,678', 12345678), ('123,456,789', 123456789),
                 ('1,234,567,890', 1234567890)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
         for numstr, result in [('-1,234', -1234), ('-12,345', -12345),
                 ('-123,456', -123456), ('-1,234,567', -1234567),
                 ('-12,345,678', -12345678), ('-123,456,789', -123456789),
                 ('-1,234,567,890', -1234567890)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
     def test_nonints(self):
         for numstr in ['jim', 'zerox', 'bone', 'twos', 'threek', 'fourk',
                 'and', 'the', 's', 'a', '-', '']:
-            self.assertRaises(ValueError, lambda: parsenum(numstr))
+            self.assertRaises(ValueError, lambda: str2num(numstr))
 
     def test_newspaper_ints(self):
         for numstr, result in [('1 thousand', 10 ** 3), ('1 million', 10 ** 6),
@@ -84,13 +84,13 @@ class test_parsenum(unittest.TestCase):
                 ('1 quadrillion', 10 ** 15), ('1 quintillion', 10 ** 18),
                 ('1 sextillion', 10 ** 21), ('1 septillion', 10 ** 24),
                 ('1 octillion', 10 ** 27), ('1 nonillion', 10 ** 30)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
         for numstr, result in [('1.2 million', 1200000), 
                 ('12.3 million', 12300000), ('12.34 million', 12340000),
                 ('123.456789 million', 123456789)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -100,7 +100,7 @@ class test_parsenum(unittest.TestCase):
                 ('one thousand three hundred fifty two', 1352),
                 ('fifteen million and thirty eight', 15000038),
                 ('twelve hundred', 1200)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -114,11 +114,11 @@ class test_parsenum(unittest.TestCase):
                 ('thirtieth', 30), ('fortieth', 40), ('fiftieth', 50),
                 ('sixtieth', 60), ('seventieth', 70), ('eightieth', 80),
                 ('ninetieth', 90)]:
-            guess = parsenum('one ' + denomstr)
+            guess = str2num('one ' + denomstr)
             self.assertEqual(guess, Fraction(1, denom))
             self.assertEqual(type(guess), type(Fraction(1, denom)))
 
-            guess = parsenum('3 ' + denomstr + 's')
+            guess = str2num('3 ' + denomstr + 's')
             self.assertEqual(guess, Fraction(3, denom))
             self.assertEqual(type(guess), type(Fraction(3, denom)))
 
@@ -132,12 +132,12 @@ class test_parsenum(unittest.TestCase):
                 ('thirtieth', 30), ('fortieth', 40), ('fiftieth', 50),
                 ('sixtieth', 60), ('seventieth', 70), ('eightieth', 80),
                 ('ninetieth', 90)]:
-            guess = parsenum('twelve million, three hundred forty five'
+            guess = str2num('twelve million, three hundred forty five'
                     ' thousand, six hundred seventy eight ' + denomstr + 's')
             self.assertEqual(guess, Fraction(12345678, denom))
             self.assertEqual(type(guess), type(Fraction(12345678, denom)))
 
-            guess = parsenum('twelve million, three hundred forty five' 
+            guess = str2num('twelve million, three hundred forty five' 
                     ' thousand, six hundred seventy eight and one '
                     + denomstr)
             self.assertEqual(guess, 12345678 + Fraction(1, denom))
@@ -146,30 +146,30 @@ class test_parsenum(unittest.TestCase):
     def test_dashes(self):
         for numstr, result in [('twenty-six', 26), ('one-hundred nine', 109),
                 ('twenty-five', 25), ('five-sixths', Fraction(5, 6))]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
     def test_word_num_mix(self):
         for numstr, result in [('twenty 6', 26), ('one-hundred 9', 109),
                 ('20 five', 25), ('5 sixths', Fraction(5, 6))]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
     def test_unicode(self):
         for numstr, result in [(u'125', 125), (u'124.5', 124.5),
                 (u'five sixths', Fraction(5, 6)), (u'one million', 1000000)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
         for numstr in [u'şimal', u'汉语漢語', u'תירִבְעִ']:
-            self.assertRaises(ValueError, lambda: parsenum(numstr))
+            self.assertRaises(ValueError, lambda: str2num(numstr))
 
     def test_cap_and_space(self):
         for numstr, result in [('TWENTY FIVE', 25), ('Thirty  six', 36),
                 ('ONE hundred and Five', 105), (' One  Hundred   SIX ', 106)]:
-            guess = parsenum(numstr)
+            guess = str2num(numstr)
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
@@ -204,25 +204,25 @@ class test_sigfig_round(unittest.TestCase):
             self.assertEqual(guess, x_round)
             self.assertEqual(type(guess), type(0.0))
 
-class test_prettynum(unittest.TestCase):
-    """Tests the prettynum function"""
+class test_num2str(unittest.TestCase):
+    """Tests the num2str function"""
 
     def test_argparsing(self):
-        self.assertRaises(TypeError, lambda: prettynum(0, foshizzle='jim'))
-        self.assertRaises(ValueError, lambda: prettynum(0, mode='foshizzle'))
+        self.assertRaises(TypeError, lambda: num2str(0, foshizzle='jim'))
+        self.assertRaises(ValueError, lambda: num2str(0, mode='foshizzle'))
     
     def test_fractions_mixed(self):
         for num, result in [(Fraction(1, 2), '1/2'), (Fraction(3, 2), '1 1/2'),
                 (Fraction(5, 3), '1 2/3'), (Fraction(-5, 3), '-1 2/3'),
                 (Fraction(0, 3), '0'), (Fraction(100, 1), '100')]:
-            guess = prettynum(num, frac_mode="mixed")
+            guess = num2str(num, frac_mode="mixed")
             self.assertEqual(guess, result)
 
     def test_fractions_improper(self):
         for num, result in [(Fraction(1, 2), '1/2'), (Fraction(3, 2), '3/2'),
                 (Fraction(5, 3), '5/3'), (Fraction(-5, 3), '-5/3'),
                 (Fraction(0, 3), '0'), (Fraction(100, 1), '100')]:
-            guess = prettynum(num, frac_mode="improper")
+            guess = num2str(num, frac_mode="improper")
             self.assertEqual(guess, result)
 
     def test_commas(self):
@@ -230,7 +230,7 @@ class test_prettynum(unittest.TestCase):
                 (1234567.89, '1,234,567.89'), (-1234567, '-1,234,567'),
                 (0, '0'), (1234, '1,234'), (0.1234, '0.1234'),
                 (-1234.56, '-1,234.56'), (1000000, '1,000,000')]:
-            guess = prettynum(num, mode="commas")
+            guess = num2str(num, mode="commas")
             self.assertEqual(guess, result)
 
     def test_newspaper(self):
@@ -238,7 +238,7 @@ class test_prettynum(unittest.TestCase):
                 (1234567.89, '1.23 million'), (0, '0'), (1234, '1,230'),
                 (0.1234, '0.123'), (-1234.56, '-1,230'),
                 (1200000, '1.20 million'), (12000000, '12.0 million')]:
-            guess = prettynum(num, sig_figs=3, mode="newspaper")
+            guess = num2str(num, sig_figs=3, mode="newspaper")
             self.assertEqual(guess, result)
 
     def test_small_wordify(self):
@@ -260,7 +260,18 @@ class test_prettynum(unittest.TestCase):
                 (1234567, 'one million, two hundred thirty four thousand, five hundred sixty seven'),
                 (12345678, 'twelve million, three hundred forty five thousand, six hundred seventy eight'),
                 (1000000001, 'one billion, one'), (1000001001, 'one billion, one thousand, one')]:
-            guess = prettynum(num, mode="words")
+            guess = num2str(num, mode="words")
+            self.assertEqual(guess, result)
+
+    def test_frac_words(self):
+        for num, result in [(Fraction(1, 2), "one half"),
+                (Fraction(3, 2), "one and one half"),
+                (Fraction(3, 4), "three quarters"),
+                (Fraction(10, 3), "three and one third"),
+                (100 + Fraction(1, 10), "one hundred and one tenth"),
+                (Fraction(-2, 7), "negative two sevenths"),
+                (Fraction(5, 26), "five twenty sixths")]:
+            guess = num2str(num, mode="words", frac_mode="mixed")
             self.assertEqual(guess, result)
 
 class test_documentation(unittest.TestCase):
