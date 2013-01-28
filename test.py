@@ -3,7 +3,7 @@
 
 import unittest
 import doctest
-from numutil import str2num, sigfig_round, num2str
+from numutil import str2num, _sigfig_round, num2str
 from numutil import _small_wordify
 from fractions import Fraction
 
@@ -173,26 +173,26 @@ class test_str2num(unittest.TestCase):
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
-class test_sigfig_round(unittest.TestCase):
-    """tests the sigfig_round function"""
+class test__sigfig_round(unittest.TestCase):
+    """tests the _sigfig_round function"""
 
     def test_100(self):
         for x in [0, -1, 1, 109234, -120934, 1.19230413, -19203.01924,
                 1.109324E100, -4.3E100]:
-            guess = sigfig_round(x, 100)
+            guess = _sigfig_round(x, 100)
             self.assertEqual(guess, x)
             self.assertEqual(type(guess), type(0.0))
 
     def test_0(self):
         for x in [0, -1, 1, 109234, -120934, 1.19230413, -19203.01924,
                 1.109324E100, -4.3E100]:
-            self.assertRaises(ValueError, lambda: sigfig_round(x, 0))
+            self.assertRaises(ValueError, lambda: _sigfig_round(x, 0))
 
     def test_1(self):
         for x, x_round in [(0, 0), (-1, -1), (1, 1), (109234, 100000),
                 (-120934, -100000), (1.19230413, 1), (-19203.01924, -20000),
                 (1.109324E100, 1E100), (-4.3E100, -4E100)]:
-            guess = sigfig_round(x, 1)
+            guess = _sigfig_round(x, 1)
             self.assertEqual(guess, x_round)
             self.assertEqual(type(guess), type(0.0))
 
@@ -200,7 +200,7 @@ class test_sigfig_round(unittest.TestCase):
         for x, x_round in [(0, 0), (-1, -1), (1, 1), (109234, 109000),
                 (-120934, -121000), (1.19230413, 1.19), (-19203.01924, -19200),
                 (1.109324E100, 1.11E100), (-4.0E100, -4E100)]:
-            guess = sigfig_round(x, 3)
+            guess = _sigfig_round(x, 3)
             self.assertEqual(guess, x_round)
             self.assertEqual(type(guess), type(0.0))
 
@@ -209,20 +209,20 @@ class test_num2str(unittest.TestCase):
 
     def test_argparsing(self):
         self.assertRaises(TypeError, lambda: num2str(0, foshizzle='jim'))
-        self.assertRaises(ValueError, lambda: num2str(0, mode='foshizzle'))
+        self.assertRaises(ValueError, lambda: num2str(0, style='foshizzle'))
     
     def test_fractions_mixed(self):
         for num, result in [(Fraction(1, 2), '1/2'), (Fraction(3, 2), '1 1/2'),
                 (Fraction(5, 3), '1 2/3'), (Fraction(-5, 3), '-1 2/3'),
                 (Fraction(0, 3), '0'), (Fraction(100, 1), '100')]:
-            guess = num2str(num, frac_mode="mixed")
+            guess = num2str(num, frac_style="mixed")
             self.assertEqual(guess, result)
 
     def test_fractions_improper(self):
         for num, result in [(Fraction(1, 2), '1/2'), (Fraction(3, 2), '3/2'),
                 (Fraction(5, 3), '5/3'), (Fraction(-5, 3), '-5/3'),
                 (Fraction(0, 3), '0'), (Fraction(100, 1), '100')]:
-            guess = num2str(num, frac_mode="improper")
+            guess = num2str(num, frac_style="improper")
             self.assertEqual(guess, result)
 
     def test_commas(self):
@@ -230,7 +230,7 @@ class test_num2str(unittest.TestCase):
                 (1234567.89, '1,234,567.89'), (-1234567, '-1,234,567'),
                 (0, '0'), (1234, '1,234'), (0.1234, '0.1234'),
                 (-1234.56, '-1,234.56'), (1000000, '1,000,000')]:
-            guess = num2str(num, mode="commas")
+            guess = num2str(num, style="commas")
             self.assertEqual(guess, result)
 
     def test_newspaper(self):
@@ -238,7 +238,7 @@ class test_num2str(unittest.TestCase):
                 (1234567.89, '1.23 million'), (0, '0'), (1234, '1,230'),
                 (0.1234, '0.123'), (-1234.56, '-1,230'),
                 (1200000, '1.20 million'), (12000000, '12.0 million')]:
-            guess = num2str(num, sig_figs=3, mode="newspaper")
+            guess = num2str(num, sig_figs=3, style="newspaper")
             self.assertEqual(guess, result)
 
     def test_small_wordify(self):
@@ -260,7 +260,7 @@ class test_num2str(unittest.TestCase):
                 (1234567, 'one million, two hundred thirty four thousand, five hundred sixty seven'),
                 (12345678, 'twelve million, three hundred forty five thousand, six hundred seventy eight'),
                 (1000000001, 'one billion, one'), (1000001001, 'one billion, one thousand, one')]:
-            guess = num2str(num, mode="words")
+            guess = num2str(num, style="words")
             self.assertEqual(guess, result)
 
     def test_frac_words(self):
@@ -271,7 +271,7 @@ class test_num2str(unittest.TestCase):
                 (100 + Fraction(1, 10), "one hundred and one tenth"),
                 (Fraction(-2, 7), "negative two sevenths"),
                 (Fraction(5, 26), "five twenty sixths")]:
-            guess = num2str(num, mode="words", frac_mode="mixed")
+            guess = num2str(num, style="words", frac_style="mixed")
             self.assertEqual(guess, result)
 
 class test_documentation(unittest.TestCase):

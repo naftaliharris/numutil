@@ -11,9 +11,9 @@ For example,
     Fraction(7, 2)
     >>> str2num('123,456.789')
     123456.789
-    >>> num2str(1234567, mode='newspaper')
+    >>> num2str(1234567, style='newspaper')
     '1.23 million'
-    >>> num2str(1234567, mode='words')
+    >>> num2str(1234567, style='words')
     'one million, two hundred thirty four thousand, five hundred sixty seven'
 
 Installation
@@ -31,7 +31,7 @@ by
 
     $ nosetests --with-coverage test.py
 
-You can test numutil yourself with
+You can test numutil yourself with nosetests, as above, or with
     
     $ python test.py
 

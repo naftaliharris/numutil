@@ -4,7 +4,6 @@
 import re
 from math import log10, floor
 from fractions import Fraction
-from collections import deque
 
 _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('four', 4), ('five', 5), ('six', 6), ('seven', 7), ('eight', 8),
@@ -128,15 +127,15 @@ def str2num(numstr):
     else:
         return result
 
-def sigfig_round(num, sig_figs):
+def _sigfig_round(num, sig_figs):
     """rounds num to a given number of significant digits, sig_figs.
     sig_figs must a positive integer, or else this throws a ValueError
-    sigfig_round always returns a float. 
+    _sigfig_round always returns a float. Meant for internal use only.
 
-    >>> from numutil import sigfig_round
-    >>> sigfig_round(1.2345, 3)
+    >>> from numutil import _sigfig_round
+    >>> _sigfig_round(1.2345, 3)
     1.23
-    >>> sigfig_round(1234567890, 5)
+    >>> _sigfig_round(1234567890, 5)
     1234600000.0
     
     """
@@ -184,13 +183,13 @@ def num2str(num, **kwds):
                 >>> num2str(12.345, sig_figs=1)
                 '10'
 
-    mode:       if 'commas', it will display numbers with commas
+    style:      if 'commas', it will display numbers with commas
                 if 'nocommas', it will display numbers without any commas
                 if 'words', it will display numbers with words
                 if 'newspaper', it will display numbers like in newspapers,
                     eg, '1.3 billion'. Numbers less than a million will be
                     displayed in comma format, because '12.34 thousand'
-                    is never used in newspapers. Newspaper mode uses a default
+                    is never used in newspapers. Newspaper style uses a default
                     value of sig_figs=3. If you don't want rounding, set
                     sig_figs=None manually.
                 Default is 'commas'
@@ -198,19 +197,19 @@ def num2str(num, **kwds):
                 Examples:
 
                 >>> from numutil import num2str
-                >>> num2str(1234567890, mode='commas')
+                >>> num2str(1234567890, style='commas')
                 '1,234,567,890'
-                >>> num2str(1234567890, mode='nocommas')
+                >>> num2str(1234567890, style='nocommas')
                 '1234567890'
-                >>> num2str(1234567890, mode='newspaper')
+                >>> num2str(1234567890, style='newspaper')
                 '1.23 billion'
-                >>> num2str(123456, mode='newspaper')
+                >>> num2str(123456, style='newspaper')
                 '123,000'
-                >>> num2str(123456, mode='newspaper', sig_figs=None)
+                >>> num2str(123456, style='newspaper', sig_figs=None)
                 '123,456'
 
 
-    frac_mode:  if 'mixed', it will display fractions as mixed, like '1 1/2'
+    frac_style: if 'mixed', it will display fractions as mixed, like '1 1/2'
                 if 'improper', it will display fractions as improper, like '3/2'
                 Default is 'mixed'
 
@@ -218,25 +217,24 @@ def num2str(num, **kwds):
 
                 >>> from numutil import num2str
                 >>> from fractions import Fraction
-                >>> num2str(Fraction(3, 2), frac_mode='mixed')
+                >>> num2str(Fraction(3, 2), frac_style='mixed')
                 '1 1/2'
-                >>> num2str(Fraction(3, 2), frac_mode='improper')
+                >>> num2str(Fraction(3, 2), frac_style='improper')
                 '3/2'
 
                 Note that fractions with denominators are converted into ints.
-
     """
 
     # Test the arguments for misspellings
     for arg in kwds:
-        if arg not in set(('sig_figs', 'mode', 'frac_mode')):
+        if arg not in set(('sig_figs', 'style', 'frac_style')):
             raise TypeError("'%s' is not a valid option. Maybe you misspelled"
                     " the option you're looking for?" % arg)
 
     # Unpack the arguments
-    frac_mode = kwds['frac_mode'] if 'frac_mode' in kwds else 'mixed'
-    mode = kwds['mode'] if 'mode' in kwds else 'commas'
-    sig_figs = 3 if mode == 'newspaper' else None
+    frac_style = kwds['frac_style'] if 'frac_style' in kwds else 'mixed'
+    style = kwds['style'] if 'style' in kwds else 'commas'
+    sig_figs = 3 if style == 'newspaper' else None
     sig_figs = kwds['sig_figs'] if 'sig_figs' in kwds else sig_figs
 
     # Fractions
@@ -252,29 +250,42 @@ def num2str(num, **kwds):
         # negative numerators mess with the divmod trick
         if numerator < 0:
             numerator *= -1
-            result = "negative " if mode == 'words' else '-'
+            result = "negative " if style == 'words' else '-'
         else:
             result = ""
 
-        if frac_mode == 'mixed':
+        if frac_style == 'mixed':
             wholepart, numerator = divmod(numerator, denominator)
             if wholepart:
                 result += num2str(wholepart, **kwds)
-                result += " and " if mode == 'words' else " "
+                result += " and " if style == 'words' else " "
 
         result += num2str(numerator, **kwds)
-        result += " " if mode == 'words' else "/"
-        result += num2str(denominator, **kwds)  # XXX fix this
+        result += " " if style == 'words' else "/"
+        if style != "words":
+            result += num2str(denominator, **kwds)
+        else:
+            denom = []
+            mod_by = 1
+            while denominator > 0:
+                denominator, r = divmod(denominator, 1000)
+                if r != 0:
+                    convert = _num2str if denom else _denom2str
+                    denom.append(_small_wordify(r) + \
+                        (' ' + convert[mod_by] if mod_by != 1 else ''))
+                mod_by *= 1000
+            denomstr = ", ".join(reversed(denom))
 
+            result += denomstr
         return result
 
     # Round and simplify to int if possible
     if sig_figs is not None:
-        num = sigfig_round(num, sig_figs)
+        num = _sigfig_round(num, sig_figs)
         if num == int(num):
             num = int(num)
 
-    if mode == 'nocommas':
+    if style == 'nocommas':
         if sig_figs is not None:
             if isinstance(num, float):
                 return str(num) + '0' * (sig_figs - (len(str(num)) - 1))
@@ -290,7 +301,7 @@ def num2str(num, **kwds):
         else:
             return str(num)
 
-    elif mode == 'commas':
+    elif style == 'commas':
         if num < 0:  # negative nums mess with divmods
             return '-' + num2str(-num, **kwds)
 
@@ -306,7 +317,7 @@ def num2str(num, **kwds):
             result = ",%03d%s" % (r, result)
         return "%d%s" % (num, result)
 
-    elif mode == 'newspaper':
+    elif style == 'newspaper':
         if num < 0:  # nonpositive nums mess with logs
             return '-' + num2str(-num, **kwds)
         elif num == 0:
@@ -316,13 +327,13 @@ def num2str(num, **kwds):
         if 10 ** d in _num2str and d > 3:
             y = float(num) / (10 ** d)
             y = int(y) if y == int(y) else y
-            kwds['mode'] = 'nocommas'
+            kwds['style'] = 'nocommas'
             return num2str(y, **kwds) + ' ' + _num2str[10 ** d]
         else:
-            kwds['mode'] = 'commas'
+            kwds['style'] = 'commas'
             return num2str(num, **kwds)
             
-    elif mode == 'words':
+    elif style == 'words':
         if num < 0:
             return "negative " + num2str(-num, **kwds)
         if isinstance(num, float):
@@ -330,17 +341,17 @@ def num2str(num, **kwds):
         elif isinstance(num, (int, long)):
             if num == 0:
                 return "zero"
-            results = deque()
+            results = []
             mod_by = 1
             while num > 0:
                 num, r = divmod(num, 1000)
                 if r != 0:
-                    results.appendleft(_small_wordify(r) + \
+                    results.append(_small_wordify(r) + \
                         (' ' + _num2str[mod_by] if mod_by != 1 else ''))
                 mod_by *= 1000
-            return ", ".join(results)
+            return ", ".join(reversed(results))
         else:
             raise TypeError("Don't know how to turn %s into words" % type(num))
 
     else:
-        raise ValueError("Unrecognized mode: '%s'" % mode)
+        raise ValueError("Unrecognized style: '%s'" % style)
