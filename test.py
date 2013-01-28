@@ -4,7 +4,7 @@
 import unittest
 import doctest
 from numutil import str2num, sigfig_round, num2str
-from numutil.numutil import _small_wordify
+from numutil import _small_wordify
 from fractions import Fraction
 
 class test_str2num(unittest.TestCase):

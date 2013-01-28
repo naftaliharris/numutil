@@ -1,4 +1,5 @@
 """numutil.py"""
+# XXX Add better module docstring
 
 import re
 from math import log10, floor
