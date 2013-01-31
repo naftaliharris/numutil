@@ -3,8 +3,8 @@
 
 import unittest
 import doctest
-from numutil import str2num, _sigfig_round, num2str
-from numutil import _small_wordify
+from numutil import str2num, num2str
+from numutil import _small_wordify, _sigfig_round
 from fractions import Fraction
 
 class test_str2num(unittest.TestCase):
@@ -271,10 +271,19 @@ class test_num2str(unittest.TestCase):
                 (100 + Fraction(1, 10), "one hundred and one tenth"),
                 (Fraction(-2, 7), "negative two sevenths"),
                 (Fraction(5, 26), "five twenty sixths"),
-                (Fraction(7, 100), "seven hundreths"),
-                (Fraction(7, 120), "seven one hundred and twentieths")]:
+                (Fraction(7, 100), "seven one hundreths"),
+                (Fraction(7, 120), "seven one hundred twentieths"),
+                (Fraction(7, 123000), "seven one hundred twenty three thousandths"),
+                (Fraction(1, 1000000), "one one millionth"),
+                (Fraction(1, 1234), "one one thousand, two hundred thirty fourth")]:
             guess = num2str(num, style="words", frac_style="mixed")
             self.assertEqual(guess, result)
+
+    def test_halves(self):
+        guess = num2str(Fraction(5, 2), style="words", frac_style="improper")
+        self.assertEqual(guess, "five halves")
+        guess = num2str(Fraction(1, 2), style="words", frac_style="improper")
+        self.assertEqual(guess, "one half")
 
 class test_documentation(unittest.TestCase):
     """Doctests the documentation in the files"""
@@ -287,8 +296,5 @@ class test_documentation(unittest.TestCase):
         failures, tests = doctest.testfile('numutil.py', package='numutil')
         self.assertEqual(failures, 0)
 
-def main():
-    unittest.main()
-
 if __name__ == "__main__":
-    main()
+    unittest.main()

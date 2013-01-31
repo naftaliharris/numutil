@@ -1,6 +1,8 @@
 """numutil.py"""
 # XXX Add better module docstring
 
+__all__ = ["str2num", "num2str"]
+
 import re
 from math import log10, floor
 from fractions import Fraction
@@ -33,12 +35,15 @@ _str2denom = dict([('half', 2), ('third', 3), ('fourth', 4), ('fifth', 5),
 
 # Make reverse dictionaries
 _num2str = dict((y, x) for x, y in _str2num.iteritems() if x != 'a')
-_denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'fourth')
+_denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'quarter')
+_small_denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'fourth'
+        and y < 20)
 
 # Add plurals.( _denom2str does not have plurals)
 for denomstr, denom in _str2denom.items():
     _str2denom[denomstr + 's'] = denom
 _str2denom['halves'] = 2
+del denomstr, denom
 
 # Strings that aren't numbers
 _special_nonnum_strs = set(['and', 'a', '', '-'])
@@ -289,7 +294,7 @@ def num2str(num, **kwds):
                                     res = ''
 
                                 if ones_tens < 20:
-                                    res += _denom2str[ones_tens]
+                                    res += _small_denom2str[ones_tens]
                                 elif ones == 0:
                                     res += _denom2str[tens * 10]
                                 else:
