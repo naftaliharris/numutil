@@ -1,5 +1,22 @@
-"""numutil.py"""
-# XXX Add better module docstring
+"""
+numutil is a python package for converting strings to and from numbers.
+For example,
+
+    >>> from numutil import str2num, num2str
+    >>> str2num('1.3 million')
+    1300000
+    >>> str2num('three and a half')
+    Fraction(7, 2)
+    >>> str2num('123,456.789')
+    123456.789
+    >>> num2str(1234567, style='newspaper')
+    '1.23 million'
+    >>> num2str(1234567, style='words')
+    'one million, two hundred thirty four thousand, five hundred sixty seven'
+
+It exposes two functions to the user: str2num and num2str, which do what you 
+would think.
+"""
 
 __all__ = ["str2num", "num2str"]
 
@@ -229,7 +246,8 @@ def num2str(num, **kwds):
                 >>> num2str(Fraction(3, 2), style='words')
                 'one and one half'
 
-                Note that fractions with denominators are converted into ints.
+                Note that fractions with denominators of one are converted
+                into ints.
     """
 
     # Test the arguments for misspellings
@@ -281,8 +299,6 @@ def num2str(num, **kwds):
                         denom.append(
                                 _small_wordify(r) + ' ' + _num2str[mod_by])
                     else:
-                        # XXX Naftali, figure out how to deal with rediculuous denominators like 23/123,456,000
-                        # "one hundred twenty three million, four hundred fifty sixth thousandths"
                         if mod_by == 1:
                             hundreds, ones_tens = divmod(r, 100)
                             tens, ones = divmod(ones_tens, 10)
@@ -336,8 +352,8 @@ def num2str(num, **kwds):
                 else:
                     return res + '.' + '0' * (sig_figs - len(res))
             else:
-                # XXX Not sure what to do
-                return str(num)
+                raise TypeError("Can't apply 'nocommas' style to type %s"
+                        % type(num))
         else:
             return str(num)
 

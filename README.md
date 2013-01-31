@@ -16,6 +16,9 @@ For example,
     >>> num2str(1234567, style='words')
     'one million, two hundred thirty four thousand, five hundred sixty seven'
 
+It exposes two functions to the user: str2num and num2str, which do what you 
+would think.
+
 Installation
 ------------
 
@@ -26,12 +29,7 @@ You can install numutil from source with
 Testing
 -------
 
-numutil is well-tested, with almost a hundred percent coverage, as determined
-by 
-
-    $ nosetests --with-coverage test.py
-
-You can test numutil yourself with nosetests, as above, or with
+numutil is reasonably well-tested. You can test numutil yourself with
     
     $ python test.py
 
