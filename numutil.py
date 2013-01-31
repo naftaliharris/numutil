@@ -29,16 +29,16 @@ _str2denom = dict([('half', 2), ('third', 3), ('fourth', 4), ('fifth', 5),
     ('billionth', 10 ** 9), ('trillionth', 10 ** 12),
     ('quadrillionth', 10 ** 15), ('quintillionth', 10 ** 18),
     ('sextillionth', 10 ** 21), ('septillionth', 10 ** 24),
-    ('octillionth', 10 ** 27), ('nonillionth', 10 ** 30)])
-
-# Add plurals
-for denomstr, denom in _str2denom.items():
-    _str2denom[denomstr + 's'] = denom
-_str2denom['halves'] = 2
+    ('octillionth', 10 ** 27), ('nonillionth', 10 ** 30), ('quarter', 4)])
 
 # Make reverse dictionaries
 _num2str = dict((y, x) for x, y in _str2num.iteritems() if x != 'a')
-_denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'halfs')
+_denom2str = dict((y, x) for x, y in _str2denom.iteritems() if x != 'fourth')
+
+# Add plurals.( _denom2str does not have plurals)
+for denomstr, denom in _str2denom.items():
+    _str2denom[denomstr + 's'] = denom
+_str2denom['halves'] = 2
 
 # Strings that aren't numbers
 _special_nonnum_strs = set(['and', 'a', '', '-'])
@@ -221,6 +221,8 @@ def num2str(num, **kwds):
                 '1 1/2'
                 >>> num2str(Fraction(3, 2), frac_style='improper')
                 '3/2'
+                >>> num2str(Fraction(3, 2), style='words')
+                'one and one half'
 
                 Note that fractions with denominators are converted into ints.
     """
@@ -270,11 +272,44 @@ def num2str(num, **kwds):
             while denominator > 0:
                 denominator, r = divmod(denominator, 1000)
                 if r != 0:
-                    convert = _num2str if denom else _denom2str
-                    denom.append(_small_wordify(r) + \
-                        (' ' + convert[mod_by] if mod_by != 1 else ''))
+                    if denom:
+                        denom.append(
+                                _small_wordify(r) + ' ' + _num2str[mod_by])
+                    else:
+                        # XXX Naftali, figure out how to deal with rediculuous denominators like 23/123,456,000
+                        # "one hundred twenty three million, four hundred fifty sixth thousandths"
+                        if mod_by == 1:
+                            hundreds, ones_tens = divmod(r, 100)
+                            tens, ones = divmod(ones_tens, 10)
+
+                            if ones_tens:
+                                if hundreds:
+                                    res = _num2str[hundreds] + ' hundred '
+                                else:
+                                    res = ''
+
+                                if ones_tens < 20:
+                                    res += _denom2str[ones_tens]
+                                elif ones == 0:
+                                    res += _denom2str[tens * 10]
+                                else:
+                                    res += _num2str[tens * 10] + ' ' + \
+                                            _denom2str[ones]
+
+                                denom.append(res)
+                            else:
+                                denom.append(_num2str[hundreds] + ' hundreth')
+                        else:
+                            denom.append(_small_wordify(r) + ' ' + _denom2str[mod_by])
                 mod_by *= 1000
             denomstr = ", ".join(reversed(denom))
+
+            # Deal with plurals
+            if numerator > 1:
+                if denomstr[-4:] != "half":
+                    denomstr += 's'
+                else:
+                    denomstr = denomstr[:-4] + "halves"
 
             result += denomstr
         return result
@@ -296,7 +331,7 @@ def num2str(num, **kwds):
                 else:
                     return res + '.' + '0' * (sig_figs - len(res))
             else:
-                # Not sure what to do
+                # XXX Not sure what to do
                 return str(num)
         else:
             return str(num)

@@ -270,7 +270,9 @@ class test_num2str(unittest.TestCase):
                 (Fraction(10, 3), "three and one third"),
                 (100 + Fraction(1, 10), "one hundred and one tenth"),
                 (Fraction(-2, 7), "negative two sevenths"),
-                (Fraction(5, 26), "five twenty sixths")]:
+                (Fraction(5, 26), "five twenty sixths"),
+                (Fraction(7, 100), "seven hundreths"),
+                (Fraction(7, 120), "seven one hundred and twentieths")]:
             guess = num2str(num, style="words", frac_style="mixed")
             self.assertEqual(guess, result)
 
