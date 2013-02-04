@@ -187,24 +187,10 @@ def _small_wordify(num):
                 results.append(_num2str[num % 10])
         return " ".join(results)
 
-def num2str(num, **kwds):
+def num2str(num, style='commas', frac_style='mixed', sig_figs='default'):
     """Turns the number num into a pretty string.
 
-    Possible keywords:
-    sig_figs:   if not None, it will round num to the specified number of
-                significant digits. Has no effect on Fractions.
-                Default is None, ie, no rounding
-
-                Examples:
-
-                >>> from numutil import num2str
-                >>> num2str(12.345)
-                '12.345'
-                >>> num2str(12.345, sig_figs=3)
-                '12.3'
-                >>> num2str(12.345, sig_figs=1)
-                '10'
-
+    Arguments:
     style:      if 'commas', it will display numbers with commas
                 if 'nocommas', it will display numbers without any commas
                 if 'words', it will display numbers with words
@@ -248,19 +234,28 @@ def num2str(num, **kwds):
 
                 Note that fractions with denominators of one are converted
                 into ints.
+
+
+    sig_figs:   if not None, it will round num to the specified number of
+                significant digits. Has no effect on Fractions.
+                Default is None, ie, no rounding, for all styles except
+                newspaper mode, which has a default value of sig_figs=3.
+
+                Examples:
+
+                >>> from numutil import num2str
+                >>> num2str(12.345)
+                '12.345'
+                >>> num2str(12.345, sig_figs=3)
+                '12.3'
+                >>> num2str(12.345, sig_figs=1)
+                '10'
+
     """
 
     # Test the arguments for misspellings
-    for arg in kwds:
-        if arg not in set(('sig_figs', 'style', 'frac_style')):
-            raise TypeError("'%s' is not a valid option. Maybe you misspelled"
-                    " the option you're looking for?" % arg)
-
-    # Unpack the arguments
-    frac_style = kwds['frac_style'] if 'frac_style' in kwds else 'mixed'
-    style = kwds['style'] if 'style' in kwds else 'commas'
-    sig_figs = 3 if style == 'newspaper' else None
-    sig_figs = kwds['sig_figs'] if 'sig_figs' in kwds else sig_figs
+    if sig_figs == 'default':
+        sig_figs = None if style != 'newspaper' else 3
 
     # Fractions
     numerator, denominator = None, None
@@ -282,13 +277,13 @@ def num2str(num, **kwds):
         if frac_style == 'mixed':
             wholepart, numerator = divmod(numerator, denominator)
             if wholepart:
-                result += num2str(wholepart, **kwds)
+                result += num2str(wholepart, style, frac_style, sig_figs)
                 result += " and " if style == 'words' else " "
 
-        result += num2str(numerator, **kwds)
+        result += num2str(numerator, style, frac_style, sig_figs)
         result += " " if style == 'words' else "/"
         if style != "words":
-            result += num2str(denominator, **kwds)
+            result += num2str(denominator, style, frac_style, sig_figs)
         else:
             denom = []
             mod_by = 1
@@ -359,7 +354,7 @@ def num2str(num, **kwds):
 
     elif style == 'commas':
         if num < 0:  # negative nums mess with divmods
-            return '-' + num2str(-num, **kwds)
+            return '-' + num2str(-num, style, frac_style, sig_figs)
 
         if isinstance(num, float):
             result = '.' + str(num).split('.')[1]
@@ -375,7 +370,7 @@ def num2str(num, **kwds):
 
     elif style == 'newspaper':
         if num < 0:  # nonpositive nums mess with logs
-            return '-' + num2str(-num, **kwds)
+            return '-' + num2str(-num, style, frac_style, sig_figs)
         elif num == 0:
             return '0'
 
@@ -383,15 +378,14 @@ def num2str(num, **kwds):
         if 10 ** d in _num2str and d > 3:
             y = float(num) / (10 ** d)
             y = int(y) if y == int(y) else y
-            kwds['style'] = 'nocommas'
-            return num2str(y, **kwds) + ' ' + _num2str[10 ** d]
+            return num2str(y, 'nocommas', frac_style, sig_figs) + \
+                    ' ' + _num2str[10 ** d]
         else:
-            kwds['style'] = 'commas'
-            return num2str(num, **kwds)
+            return num2str(num, 'commas', frac_style, sig_figs)
             
     elif style == 'words':
         if num < 0:
-            return "negative " + num2str(-num, **kwds)
+            return "negative " + num2str(-num, style, frac_style, sig_figs)
         if isinstance(num, float):
             raise NotImplementedError
         elif isinstance(num, (int, long)):
@@ -402,7 +396,7 @@ def num2str(num, **kwds):
             while num > 0:
                 num, r = divmod(num, 1000)
                 if r != 0:
-                    results.append(_small_wordify(r) + \
+                    results.append(_small_wordify(r) +
                         (' ' + _num2str[mod_by] if mod_by != 1 else ''))
                 mod_by *= 1000
             return ", ".join(reversed(results))

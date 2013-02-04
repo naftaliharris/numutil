@@ -50,7 +50,6 @@ TODO List, Wish List, and Known Bugs
 * test different python versions, esp. python3
 * change to pep8 style
 * prevent some of the recursions in num2str?
-* Fix the API so it doesn't have kwargs
 * test on 64bit machines, especially with floats
 * get nosetests to work again
 * maybe implement a number finder, extracting lists of numbers from strings?
