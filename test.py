@@ -289,7 +289,7 @@ class test_documentation(unittest.TestCase):
     """Doctests the documentation in the files"""
 
     def test_README(self):
-        failures, tests = doctest.testfile('README.md')
+        failures, tests = doctest.testfile('README.txt')
         self.assertEqual(failures, 0)
 
     def test_numutil(self):

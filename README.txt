@@ -45,7 +45,7 @@ numutil is BSD licensed. You can read the details in the LICENSE file.
 TODO List, Wish List, and Known Bugs
 ------------------------
 
-* implement printing facebook style: ("54.2K")
+* implement printing and reading facebook style: ("54.2K")
 * fix str2num("1,2,3") == 123 bug?
 * test different python versions, esp. python3
 * change to pep8 style
@@ -55,7 +55,7 @@ TODO List, Wish List, and Known Bugs
 * maybe implement a number finder, extracting lists of numbers from strings?
 * add a rounding option for completion, (eg for currencies)?
 * implement printing floats as words?
-* add to pypi
+* support locale-issues, (like commas vs decimal points)
 
 Author and Maintainer
 ---------------------
