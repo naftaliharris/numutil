@@ -7,6 +7,7 @@ from numutil import str2num, num2str
 from numutil import _small_wordify, _sigfig_round
 from fractions import Fraction
 
+
 class test_str2num(unittest.TestCase):
     """Tests the str2num function"""
 
@@ -173,6 +174,16 @@ class test_str2num(unittest.TestCase):
             self.assertEqual(guess, result)
             self.assertEqual(type(guess), type(result))
 
+    def test_common_expressions(self):
+        for numstr, result in [('four score and seven', 87),
+                ('three dozen', 36), ('a dozen', 12), ('five scores', 100),
+                ('fifty three gross', 7632), ('dozen', 12),
+                ('a dozen dozen', 144)]:
+            guess = str2num(numstr)
+            self.assertEqual(guess, result)
+            self.assertEqual(type(guess), type(result))
+
+
 class test__sigfig_round(unittest.TestCase):
     """tests the _sigfig_round function"""
 
@@ -203,6 +214,7 @@ class test__sigfig_round(unittest.TestCase):
             guess = _sigfig_round(x, 3)
             self.assertEqual(guess, x_round)
             self.assertEqual(type(guess), type(0.0))
+
 
 class test_num2str(unittest.TestCase):
     """Tests the num2str function"""
@@ -285,6 +297,7 @@ class test_num2str(unittest.TestCase):
         guess = num2str(Fraction(1, 2), style="words", frac_style="improper")
         self.assertEqual(guess, "one half")
 
+
 class test_documentation(unittest.TestCase):
     """Doctests the documentation in the files"""
 
@@ -295,6 +308,7 @@ class test_documentation(unittest.TestCase):
     def test_numutil(self):
         failures, tests = doctest.testfile('numutil.py', package='numutil')
         self.assertEqual(failures, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

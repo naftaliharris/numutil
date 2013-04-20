@@ -11,6 +11,8 @@ For example,
     Fraction(7, 2)
     >>> str2num('123,456.789')
     123456.789
+    >>> str2num('four score and seven')
+    87
     >>> num2str(1234567, style='newspaper')
     '1.23 million'
     >>> num2str(1234567, style='words')

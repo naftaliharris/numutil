@@ -24,6 +24,7 @@ import re
 from math import log10, floor
 from fractions import Fraction
 
+
 _str2num = dict([('zero', 0), ('one', 1), ('two', 2), ('three', 3),
     ('four', 4), ('five', 5), ('six', 6), ('seven', 7), ('eight', 8),
     ('nine', 9), ('ten', 10), ('eleven', 11), ('twelve', 12),
@@ -61,6 +62,9 @@ for denomstr, denom in _str2denom.items():
     _str2denom[denomstr + 's'] = denom
 _str2denom['halves'] = 2
 del denomstr, denom
+
+# Add unit words
+_unit_words = {'dozen': 12, 'gross': 144, 'score': 20, 'scores': 20}
 
 # Strings that aren't numbers
 _special_nonnum_strs = set(['and', 'a', '', '-'])
@@ -121,10 +125,15 @@ def str2num(numstr):
                     if num < 100:
                         magnitude += num
                     elif num == 100:
-                        magnitude *= 100
+                        magnitude *= num
                     else:
                         result += magnitude * num
                         magnitude = 0
+                elif word in _unit_words:
+                    if magnitude != 0:
+                        magnitude *= _unit_words[word]
+                    else:
+                        magnitude = _unit_words[word]
                 elif word in _str2denom:
                     denom = _str2denom[word]
                     if andcount:  # like 'three and a half'
